@@ -1,0 +1,4 @@
+/dist/
+/abuse-dat-gen
+*.test
+*.out

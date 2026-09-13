@@ -1,0 +1,50 @@
+# Domains that must never be blocked, whatever upstream lists say.
+#
+# An entry protects the name and everything below it: "google.com" also
+# protects "mail.google.com". A rule removed because of this file is listed
+# under "removed_by_allowlist" in manifest.json, so every exception is visible.
+#
+# Only add a domain operated by the organisation itself. Never add a service
+# that hosts other people's content (githubusercontent.com, amazonaws.com,
+# googleusercontent.com, pages.dev, t.me, ...): abuse lives on those, and
+# shared-hosting suffixes are already protected from whole-suffix rules by the
+# Public Suffix List check.
+#
+# False positive in an upstream list? Report it upstream first:
+#   HaGeZi:    https://github.com/hagezi/dns-blocklists/issues
+#   CyberHost: https://cyberhost.uk/malware-blocklist
+
+# Operating systems, app stores, connectivity checks
+android.com
+apple.com
+gstatic.com
+icloud.com
+microsoft.com
+mzstatic.com
+windows.com
+windowsupdate.com
+
+# Search, identity, APIs
+google.com
+live.com
+office.com
+
+# Messaging
+telegram.org
+whatsapp.com
+whatsapp.net
+
+# Infrastructure: DNS, CDN control planes, certificate authorities (OCSP/CRL)
+cloudflare.com
+cloudflare-dns.com
+digicert.com
+globalsign.com
+letsencrypt.org
+pki.goog
+sectigo.com
+
+# Developer and reference
+github.com
+mozilla.org
+wikipedia.org
+wikimedia.org
