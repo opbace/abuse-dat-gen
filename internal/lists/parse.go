@@ -17,7 +17,6 @@ const (
 	// its subdomains. This is HaGeZi's "wildcard" flavour.
 	Wildcard Format = "wildcard"
 	// Domains is one bare "example.com" per line, meaning exactly that name.
-	// CyberHost documents its list entries as exact matches.
 	Domains Format = "domains"
 )
 

@@ -34,10 +34,8 @@ mirror what you use.
 ## False positives and removals
 
 This project republishes upstream data. To get a domain removed, report it to
-the list that contains it — the change will flow through on the next build:
-
-- HaGeZi: <https://github.com/hagezi/dns-blocklists/issues>
-- CyberHost: <https://cyberhost.uk/malware-blocklist>
+HaGeZi — the change will flow through on the next build:
+<https://github.com/hagezi/dns-blocklists/issues>
 
 `manifest.json` lists the sources each build uses. Additions to
 `allowlist.txt` are accepted only for domains operated by the organisation
@@ -54,4 +52,4 @@ project is legal advice.
 ## No affiliation
 
 This project is not affiliated with, endorsed by, or sponsored by HaGeZi,
-CyberHost.uk, Project X (Xray) or Project V (V2Ray).
+Project X (Xray) or Project V (V2Ray).

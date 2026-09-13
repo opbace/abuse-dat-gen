@@ -11,8 +11,7 @@
 # Public Suffix List check.
 #
 # False positive in an upstream list? Report it upstream first:
-#   HaGeZi:    https://github.com/hagezi/dns-blocklists/issues
-#   CyberHost: https://cyberhost.uk/malware-blocklist
+#   HaGeZi: https://github.com/hagezi/dns-blocklists/issues
 
 # Operating systems, app stores, connectivity checks
 android.com

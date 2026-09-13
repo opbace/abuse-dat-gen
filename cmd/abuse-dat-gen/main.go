@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
-// Command abuse-dat-gen builds abuse.dat, a V2Ray/Xray geosite file of
-// malware, phishing and other abuse domains, from public blocklists.
+// Command abuse-dat-gen builds V2Ray/Xray geosite files of malware, phishing
+// and other abuse domains from HaGeZi's Threat Intelligence Feeds.
 package main
 
 import (
@@ -156,10 +156,10 @@ func renderSummary(m *build.Manifest, err error) string {
 		b.WriteString("\n")
 	}
 	if m != nil && len(m.Categories) > 0 {
-		b.WriteString("| Category | Rules | domain | full | Previous | Collapsed | Public suffix removed | Allowlist removed |\n|---|---:|---:|---:|---:|---:|---:|---:|\n")
+		b.WriteString("| File | Rules | domain | full | Previous | Collapsed | Public suffix removed | Allowlist removed |\n|---|---:|---:|---:|---:|---:|---:|---:|\n")
 		for _, c := range m.Categories {
-			fmt.Fprintf(&b, "| %s | %d | %d | %d | %d | %d | %d | %d |\n",
-				c.Code, c.Rules, c.DomainRules, c.FullRules, c.PreviousRules, c.Collapsed,
+			fmt.Fprintf(&b, "| %s.dat | %d | %d | %d | %d | %d | %d | %d |\n",
+				c.File, c.Rules, c.DomainRules, c.FullRules, c.PreviousRules, c.Collapsed,
 				len(c.RemovedPublicSuffix), len(c.RemovedByAllowlist))
 		}
 		b.WriteString("\n")
@@ -173,9 +173,9 @@ func renderSummary(m *build.Manifest, err error) string {
 func renderNotes(m *build.Manifest) string {
 	var b strings.Builder
 	b.WriteString("Automated build. Use at your own risk: see DISCLAIMER.md.\n\n")
-	b.WriteString("| Category | Xray rule | Rules |\n|---|---|---:|\n")
+	b.WriteString("| File | Xray rule | Rules |\n|---|---|---:|\n")
 	for _, c := range m.Categories {
-		fmt.Fprintf(&b, "| %s | `ext:abuse.dat:%s` | %d |\n", c.Code, strings.ToLower(c.Code), c.Rules)
+		fmt.Fprintf(&b, "| `%s.dat` | `ext:%s.dat:%s` | %d |\n", c.File, c.File, strings.ToLower(c.Code), c.Rules)
 	}
 	b.WriteString("\n### Attribution\n\n")
 	for _, s := range m.Sources {

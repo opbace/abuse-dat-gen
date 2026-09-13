@@ -16,7 +16,7 @@ concurrency:
 env:
   # Branch served through raw.githubusercontent.com; the primary download.
   RELEASE_BRANCH: release
-  # Older GitHub releases (archives, including abuse.txt) are deleted after
+  # Older GitHub releases (archives, including the .txt lists) are deleted after
   # each successful publish.
   KEEP_RELEASES: 14
 
@@ -54,7 +54,7 @@ jobs:
       - name: Verify with Xray
         working-directory: compat
         env:
-          ABUSE_DAT: ../dist/abuse.dat
+          ABUSE_DAT_DIR: ../dist
         run: go test -v -timeout 30m -run 'TestGolden|TestRelease' ./...
 
       - name: Verify checksums
@@ -64,7 +64,6 @@ jobs:
       - name: Attach license and notices
         run: |
           cp LICENSE NOTICE.md DISCLAIMER.md dist/
-          cp LICENSES/CC-BY-SA-4.0.txt dist/LICENSE-CC-BY-SA-4.0.txt
 
       - name: Choose tag
         id: tag
@@ -72,16 +71,16 @@ jobs:
 
       # raw.githubusercontent.com serves files from a branch, not from release
       # assets. The branch is a single orphan commit replaced on every build,
-      # so the repository does not keep ~55 MB of history per day.
-      # abuse.txt stays in the GitHub release only.
+      # so the repository does not keep ~70 MB of history per day.
+      # The .txt lists stay in the GitHub release only.
       - name: Publish to the release branch
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
           mkdir branch
-          cp dist/abuse.dat dist/manifest.json dist/sha256sums.txt \
-             dist/LICENSE dist/LICENSE-CC-BY-SA-4.0.txt dist/NOTICE.md dist/DISCLAIMER.md branch/
+          cp dist/*.dat dist/manifest.json dist/sha256sums.txt \
+             dist/LICENSE dist/NOTICE.md dist/DISCLAIMER.md branch/
           cd branch
           git init -q -b "$RELEASE_BRANCH"
           git config user.name "github-actions[bot]"

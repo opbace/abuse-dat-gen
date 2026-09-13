@@ -21,28 +21,21 @@ type Source struct {
 	MinRules int
 }
 
-// Category is one code in the output file, built from the union of its
-// sources.
+// Category is one output: <File>.dat holding a single geosite category named
+// Code, plus <File>.txt with the same rules as text.
 type Category struct {
+	File        string
 	Code        string
 	Description string
 	Sources     []string
 	MinRules    int
 }
 
-// DatFile is the name of the published geosite file.
-const DatFile = "abuse.dat"
+const hagezi = "HaGeZi DNS Blocklists (https://github.com/hagezi/dns-blocklists), GPL-3.0."
 
-const (
-	hagezi    = "HaGeZi DNS Blocklists (https://github.com/hagezi/dns-blocklists), GPL-3.0."
-	cyberhost = "CyberHost.uk Malware Blocklist (https://cyberhost.uk/malware-blocklist), " +
-		"licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). " +
-		"Changes: normalized, deduplicated, merged with other lists and converted to " +
-		"V2Ray geosite format; the adaptation is distributed under GPL-3.0, a " +
-		"BY-SA-compatible license."
-)
-
-// DefaultSources are the lists fetched on every build.
+// DefaultSources are the lists fetched on every build: the three sizes of
+// HaGeZi's Threat Intelligence Feeds. Each smaller size is a subset of the
+// next larger one.
 var DefaultSources = []Source{
 	{
 		Name:        "hagezi-tif",
@@ -51,29 +44,54 @@ var DefaultSources = []Source{
 		Homepage:    "https://github.com/hagezi/dns-blocklists",
 		License:     "GPL-3.0",
 		LicenseURL:  "https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
-		Attribution: "Threat Intelligence Feeds from " + hagezi,
+		Attribution: "Threat Intelligence Feeds (full) from " + hagezi,
 		MinRules:    1_000_000,
 	},
 	{
-		Name:        "cyberhost-malware",
-		URL:         "https://lists.cyberhost.uk/malware.txt",
-		Format:      lists.Domains,
-		Homepage:    "https://cyberhost.uk/malware-blocklist",
-		License:     "CC-BY-SA-4.0",
-		LicenseURL:  "https://creativecommons.org/licenses/by-sa/4.0/",
-		Attribution: cyberhost,
-		MinRules:    20_000,
+		Name:        "hagezi-tif-medium",
+		URL:         "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.medium.txt",
+		Format:      lists.Wildcard,
+		Homepage:    "https://github.com/hagezi/dns-blocklists",
+		License:     "GPL-3.0",
+		LicenseURL:  "https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
+		Attribution: "Threat Intelligence Feeds (medium) from " + hagezi,
+		MinRules:    200_000,
+	},
+	{
+		Name:        "hagezi-tif-mini",
+		URL:         "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.mini.txt",
+		Format:      lists.Wildcard,
+		Homepage:    "https://github.com/hagezi/dns-blocklists",
+		License:     "GPL-3.0",
+		LicenseURL:  "https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
+		Attribution: "Threat Intelligence Feeds (mini) from " + hagezi,
+		MinRules:    50_000,
 	},
 }
 
-// DefaultCategories are the codes written to abuse.dat. HaGeZi and CyberHost
-// are combined because they overlap little: when this was set up only about
-// 12% of CyberHost's entries were also in the TIF list.
+// DefaultCategories are the published files. All of them use the code ABUSE,
+// so switching sizes only changes the file name in an Xray rule
+// (ext:abuse-medium.dat:abuse).
 var DefaultCategories = []Category{
 	{
+		File:        "abuse",
 		Code:        "ABUSE",
-		Description: "HaGeZi Threat Intelligence Feeds + CyberHost malware blocklist.",
-		Sources:     []string{"hagezi-tif", "cyberhost-malware"},
+		Description: "HaGeZi Threat Intelligence Feeds, full size.",
+		Sources:     []string{"hagezi-tif"},
 		MinRules:    1_000_000,
+	},
+	{
+		File:        "abuse-medium",
+		Code:        "ABUSE",
+		Description: "HaGeZi Threat Intelligence Feeds, medium size.",
+		Sources:     []string{"hagezi-tif-medium"},
+		MinRules:    200_000,
+	},
+	{
+		File:        "abuse-mini",
+		Code:        "ABUSE",
+		Description: "HaGeZi Threat Intelligence Feeds, mini size.",
+		Sources:     []string{"hagezi-tif-mini"},
+		MinRules:    50_000,
 	},
 }

@@ -2,3 +2,4 @@
 /abuse-dat-gen
 *.test
 *.out
+.idea/

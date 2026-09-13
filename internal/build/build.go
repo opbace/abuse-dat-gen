@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
-// Package build turns upstream lists into abuse.dat, text lists and a
+// Package build turns upstream lists into geosite .dat files, text lists and a
 // manifest, and refuses to publish anything that fails a quality gate.
 package build
 
@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -48,7 +49,7 @@ type Options struct {
 	Now func() time.Time
 }
 
-// Manifest describes one build. It is published next to abuse.dat.
+// Manifest describes one build. It is published next to the .dat files.
 type Manifest struct {
 	Generator   string           `json:"generator"`
 	Version     string           `json:"version"`
@@ -72,6 +73,7 @@ type SourceReport struct {
 }
 
 type CategoryReport struct {
+	File        string   `json:"file"`
 	Code        string   `json:"code"`
 	Description string   `json:"description"`
 	Sources     []string `json:"sources"`
@@ -146,20 +148,30 @@ func Run(ctx context.Context, o Options) (*Manifest, error) {
 	previous := map[string]int{}
 	if o.Previous != nil {
 		for _, c := range o.Previous.Categories {
-			previous[c.Code] = c.Rules
+			previous[c.File] = c.Rules
 		}
 	}
-	var sites []geosite.Site
+	files := map[string][]byte{}
+	seen := map[string]bool{}
 	for _, cat := range o.Categories {
+		if !validFileName(cat.File) {
+			fail("category %q: file name must be 1-64 characters of a-z, 0-9 and '-'", cat.File)
+			continue
+		}
+		if seen[cat.File] {
+			fail("category %s: duplicate file name", cat.File)
+			continue
+		}
+		seen[cat.File] = true
 		if err := geosite.ValidateCode(cat.Code); err != nil {
-			fail("category: %v", err)
+			fail("category %s: %v", cat.File, err)
 			continue
 		}
 		set := newRuleSet()
 		for _, name := range cat.Sources {
 			rules, ok := parsed[name]
 			if !ok {
-				fail("category %s: unknown source %q", cat.Code, name)
+				fail("category %s: unknown source %q", cat.File, name)
 				continue
 			}
 			for _, r := range rules {
@@ -171,10 +183,10 @@ func Run(ctx context.Context, o Options) (*Manifest, error) {
 		rules, collapsed := set.compact()
 
 		rep := CategoryReport{
-			Code: cat.Code, Description: cat.Description, Sources: cat.Sources,
+			File: cat.File, Code: cat.Code, Description: cat.Description, Sources: cat.Sources,
 			Rules: len(rules), Collapsed: collapsed,
 			RemovedPublicSuffix: ruleStrings(psl), RemovedByAllowlist: ruleStrings(allowed),
-			PreviousRules: previous[cat.Code],
+			PreviousRules: previous[cat.File],
 		}
 		for _, r := range rules {
 			if r.Kind == lists.Exact {
@@ -186,12 +198,12 @@ func Run(ctx context.Context, o Options) (*Manifest, error) {
 		m.Categories = append(m.Categories, rep)
 
 		if len(rules) < cat.MinRules {
-			fail("category %s: %d rules, below the floor of %d", cat.Code, len(rules), cat.MinRules)
+			fail("category %s: %d rules, below the floor of %d", cat.File, len(rules), cat.MinRules)
 		}
-		if prev := previous[cat.Code]; prev > 0 {
+		if prev := previous[cat.File]; prev > 0 {
 			if drop := 1 - float64(len(rules))/float64(prev); drop > o.MaxDrop {
 				fail("category %s: shrank %.1f%% since the previous release (%d -> %d, limit %.0f%%)",
-					cat.Code, drop*100, prev, len(rules), o.MaxDrop*100)
+					cat.File, drop*100, prev, len(rules), o.MaxDrop*100)
 			}
 		}
 		// By construction nothing allowlisted survives; this guards the
@@ -202,26 +214,30 @@ func Run(ctx context.Context, o Options) (*Manifest, error) {
 		}
 		for name := range allow.names {
 			if final.matches(name) {
-				fail("category %s: still matches allowlisted %s", cat.Code, name)
+				fail("category %s: still matches allowlisted %s", cat.File, name)
 			}
 		}
-		sites = append(sites, geosite.Site{Code: cat.Code, Rules: rules})
+
+		// 3. Encode, then decode the bytes back and compare.
+		site := []geosite.Site{{Code: cat.Code, Rules: rules}}
+		var dat bytes.Buffer
+		if err := geosite.Write(&dat, site); err != nil {
+			return m, fmt.Errorf("encode %s.dat: %w", cat.File, err)
+		}
+		decoded, err := geosite.Read(dat.Bytes())
+		if err != nil {
+			fail("%s.dat does not decode: %v", cat.File, err)
+			continue
+		}
+		if !geosite.Equal(site, decoded) {
+			fail("%s.dat decodes to different content than was encoded", cat.File)
+			continue
+		}
+		files[cat.File+".dat"] = dat.Bytes()
+		files[cat.File+".txt"] = textList(rep, rules, m)
 	}
 	if len(failures) > 0 {
 		return m, &GateError{failures}
-	}
-
-	// 3. Encode, then decode the bytes back and compare.
-	var dat bytes.Buffer
-	if err := geosite.Write(&dat, sites); err != nil {
-		return m, fmt.Errorf("encode %s: %w", DatFile, err)
-	}
-	decoded, err := geosite.Read(dat.Bytes())
-	if err != nil {
-		return m, &GateError{[]string{fmt.Sprintf("%s does not decode: %v", DatFile, err)}}
-	}
-	if !geosite.Equal(sites, decoded) {
-		return m, &GateError{[]string{DatFile + " decodes to different content than was encoded"}}
 	}
 
 	// 4. Write everything to a staging directory and swap it in.
@@ -234,10 +250,6 @@ func Run(ctx context.Context, o Options) (*Manifest, error) {
 	}
 	// Flat layout: GitHub release assets cannot live in subdirectories, and
 	// sha256sums.txt has to verify against a plain download of the release.
-	files := map[string][]byte{DatFile: dat.Bytes()}
-	for _, s := range sites {
-		files[strings.ToLower(s.Code)+".txt"] = textList(s, m)
-	}
 	names := make([]string, 0, len(files))
 	for name := range files {
 		names = append(names, name)
@@ -276,31 +288,37 @@ func Run(ctx context.Context, o Options) (*Manifest, error) {
 // textList renders a category in the same "domain:" / "full:" syntax Xray
 // accepts in routing rules. These files are also the preferred form for
 // modifying the data, which the GPL asks to be available.
-func textList(s geosite.Site, m *Manifest) []byte {
+func textList(c CategoryReport, rules []lists.Rule, m *Manifest) []byte {
 	var b bytes.Buffer
-	fmt.Fprintf(&b, "# %s - generated by abuse-dat-gen %s at %s\n", s.Code, m.Version, m.GeneratedAt.Format(time.RFC3339))
+	fmt.Fprintf(&b, "# %s.txt (category %s) - generated by abuse-dat-gen %s at %s\n",
+		c.File, c.Code, m.Version, m.GeneratedAt.Format(time.RFC3339))
 	b.WriteString("# License: GPL-3.0-only. Provided without warranty; see DISCLAIMER.md.\n")
 	b.WriteString("# Contains data from:\n")
-	used := map[string]bool{}
-	for _, c := range m.Categories {
-		if c.Code == s.Code {
-			for _, name := range c.Sources {
-				used[name] = true
-			}
-		}
-	}
 	for _, src := range m.Sources {
-		if used[src.Name] {
+		if slices.Contains(c.Sources, src.Name) {
 			fmt.Fprintf(&b, "#   - %s\n", src.Attribution)
 		}
 	}
-	for _, r := range s.Rules {
+	for _, r := range rules {
 		b.WriteString(r.Kind.String())
 		b.WriteByte(':')
 		b.WriteString(r.Value)
 		b.WriteByte('\n')
 	}
 	return b.Bytes()
+}
+
+func validFileName(name string) bool {
+	if name == "" || len(name) > 64 {
+		return false
+	}
+	for i := 0; i < len(name); i++ {
+		c := name[i]
+		if !(c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '-') {
+			return false
+		}
+	}
+	return true
 }
 
 func ruleStrings(rules []lists.Rule) []string {

@@ -69,46 +69,48 @@ func TestGolden(t *testing.T) {
 	})
 }
 
-// TestRelease loads a real build. It runs when ABUSE_DAT points at abuse.dat,
-// as the release workflow does, and reports what loading the category costs.
+// TestRelease loads a real build. It runs when ABUSE_DAT_DIR points at the
+// generator's output directory, as the release workflow does, and reports
+// what loading each file costs.
 func TestRelease(t *testing.T) {
-	path := os.Getenv("ABUSE_DAT")
-	if path == "" {
-		t.Skip("set ABUSE_DAT to a generated abuse.dat")
+	dir := os.Getenv("ABUSE_DAT_DIR")
+	if dir == "" {
+		t.Skip("set ABUSE_DAT_DIR to the directory holding the generated .dat files")
 	}
-	path, err := filepath.Abs(path)
+	dir, err := filepath.Abs(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir, file := filepath.Split(path)
 
-	runtime.GC()
-	var before runtime.MemStats
-	runtime.ReadMemStats(&before)
-	start := time.Now()
+	report := "\n| File | Rules loaded by Xray | Load + matcher time | Heap retained |\n|---|---:|---:|---:|\n"
+	for _, file := range []string{"abuse.dat", "abuse-medium.dat", "abuse-mini.dat"} {
+		runtime.GC()
+		var before runtime.MemStats
+		runtime.ReadMemStats(&before)
+		start := time.Now()
 
-	m, n := matcher(t, dir, file, "abuse")
+		m, n := matcher(t, dir, file, "abuse")
 
-	elapsed := time.Since(start)
-	runtime.GC()
-	var after runtime.MemStats
-	runtime.ReadMemStats(&after)
-	retained := int64(after.HeapAlloc) - int64(before.HeapAlloc)
+		elapsed := time.Since(start)
+		runtime.GC()
+		var after runtime.MemStats
+		runtime.ReadMemStats(&after)
+		retained := int64(after.HeapAlloc) - int64(before.HeapAlloc)
 
-	for _, name := range []string{"google.com", "www.google.com", "apple.com", "github.com", "cloudflare.com", "whatsapp.net"} {
-		if m.ApplyDomain(name) {
-			t.Errorf("ABUSE blocks %s", name)
+		for _, name := range []string{"google.com", "www.google.com", "apple.com", "github.com", "cloudflare.com", "whatsapp.net"} {
+			if m.ApplyDomain(name) {
+				t.Errorf("%s blocks %s", file, name)
+			}
 		}
+		// Canary from the incident this project grew out of: a BadBox 2.0
+		// command-and-control domain listed in every TIF size.
+		if !m.ApplyDomain("pcxrl.com") {
+			t.Logf("warning: %s no longer contains pcxrl.com (upstream may have delisted it)", file)
+		}
+		runtime.KeepAlive(m)
+		report += fmt.Sprintf("| %s | %d | %s | %.0f MiB |\n", file, n, elapsed.Round(time.Millisecond), float64(retained)/(1<<20))
 	}
-	// Canary from the incident this project grew out of: a BadBox 2.0
-	// command-and-control domain listed by both upstreams.
-	if !m.ApplyDomain("pcxrl.com") {
-		t.Log("warning: ABUSE no longer contains pcxrl.com (upstream may have delisted it)")
-	}
-	runtime.KeepAlive(m)
 
-	report := fmt.Sprintf("\n| Rules loaded by Xray | Load + matcher time | Heap retained |\n|---:|---:|---:|\n| %d | %s | %.0f MiB |\n",
-		n, elapsed.Round(time.Millisecond), float64(retained)/(1<<20))
 	t.Log(report)
 	if p := os.Getenv("GITHUB_STEP_SUMMARY"); p != "" {
 		if f, err := os.OpenFile(p, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644); err == nil {

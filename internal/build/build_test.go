@@ -137,8 +137,8 @@ func testOptions(t *testing.T) Options {
 			{Name: "ch", URL: "u:ch", Format: lists.Domains, Attribution: "CH attribution", MinRules: 1},
 		},
 		Categories: []Category{
-			{Code: "ABUSE", Sources: []string{"tif", "ch"}, MinRules: 2},
-			{Code: "CH", Sources: []string{"ch"}, MinRules: 1},
+			{File: "abuse", Code: "ABUSE", Sources: []string{"tif", "ch"}, MinRules: 2},
+			{File: "abuse-ch", Code: "ABUSE", Sources: []string{"ch"}, MinRules: 1},
 		},
 		Allowlist: []string{"google.com"},
 		Fetcher: fakeFetcher{
@@ -159,20 +159,22 @@ func TestRun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(o.OutDir, DatFile))
-	if err != nil {
-		t.Fatal(err)
-	}
-	sites, err := geosite.Read(data)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []geosite.Site{
-		{Code: "ABUSE", Rules: rules("domain:evil.example", "domain:pcxrl.com", "full:pcxrlback.com")},
-		{Code: "CH", Rules: rules("full:pcxrl.com", "full:pcxrlback.com")},
-	}
-	if !geosite.Equal(sites, want) {
-		t.Errorf("abuse.dat = %+v; want %+v", sites, want)
+	// One file per category, each holding a single category.
+	for file, want := range map[string][]geosite.Site{
+		"abuse.dat":    {{Code: "ABUSE", Rules: rules("domain:evil.example", "domain:pcxrl.com", "full:pcxrlback.com")}},
+		"abuse-ch.dat": {{Code: "ABUSE", Rules: rules("full:pcxrl.com", "full:pcxrlback.com")}},
+	} {
+		data, err := os.ReadFile(filepath.Join(o.OutDir, file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		sites, err := geosite.Read(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !geosite.Equal(sites, want) {
+			t.Errorf("%s = %+v; want %+v", file, sites, want)
+		}
 	}
 
 	abuse := m.Categories[0]
@@ -192,9 +194,9 @@ func TestRun(t *testing.T) {
 			t.Errorf("abuse.txt lacks %q", s)
 		}
 	}
-	chTxt, _ := os.ReadFile(filepath.Join(o.OutDir, "ch.txt"))
+	chTxt, _ := os.ReadFile(filepath.Join(o.OutDir, "abuse-ch.txt"))
 	if strings.Contains(string(chTxt), "TIF attribution") {
-		t.Error("ch.txt credits a source it does not use")
+		t.Error("abuse-ch.txt credits a source it does not use")
 	}
 
 	var onDisk Manifest
@@ -233,12 +235,20 @@ func TestRunGates(t *testing.T) {
 			"source ch: not found",
 		},
 		"shrank": {
-			func(o *Options) { o.Previous = &Manifest{Categories: []CategoryReport{{Code: "ABUSE", Rules: 10}}} },
-			"category ABUSE: shrank 70.0%",
+			func(o *Options) { o.Previous = &Manifest{Categories: []CategoryReport{{File: "abuse", Rules: 10}}} },
+			"category abuse: shrank 70.0%",
 		},
 		"bad code": {
 			func(o *Options) { o.Categories[1].Code = "lower" },
 			`code "lower"`,
+		},
+		"duplicate file": {
+			func(o *Options) { o.Categories[1].File = "abuse" },
+			"category abuse: duplicate file name",
+		},
+		"bad file name": {
+			func(o *Options) { o.Categories[1].File = "../abuse" },
+			`category "../abuse": file name must be`,
 		},
 	}
 	for name, tc := range cases {

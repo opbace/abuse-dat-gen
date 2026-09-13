@@ -65,7 +65,7 @@ pcxrl.org
 }
 
 func TestParseDomains(t *testing.T) {
-	in := `### CyberHost.uk Malware and Phishing Blocklist
+	in := `### An exact-match domain list
 # https://www.humansecurity.com/learn/blog/satori-threat-intelligence-disruption-badbox-2-0/
 # Added on: 2025-06-06
 pcxrl.com
