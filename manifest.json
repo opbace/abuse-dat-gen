@@ -1,0 +1,191 @@
+{
+  "generator": "abuse-dat-gen",
+  "version": "ed8f8234f027",
+  "generated_at": "2026-11-07T11:11:34.731328558Z",
+  "sources": [
+    {
+      "name": "hagezi-tif",
+      "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.txt",
+      "homepage": "https://github.com/hagezi/dns-blocklists",
+      "license": "GPL-3.0",
+      "license_url": "https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
+      "attribution": "Threat Intelligence Feeds (full) from HaGeZi DNS Blocklists (https://github.com/hagezi/dns-blocklists), GPL-3.0.",
+      "fetched_at": "2026-11-07T11:11:36.256088734Z",
+      "bytes": 29370973,
+      "sha256": "e42c1197222660bab1e0a05169d2840d7a6306ebf4276f8d2628cb8fc3560164",
+      "lines": 1449154,
+      "rules": 1449154,
+      "invalid": 0
+    },
+    {
+      "name": "hagezi-tif-medium",
+      "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.medium.txt",
+      "homepage": "https://github.com/hagezi/dns-blocklists",
+      "license": "GPL-3.0",
+      "license_url": "https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
+      "attribution": "Threat Intelligence Feeds (medium) from HaGeZi DNS Blocklists (https://github.com/hagezi/dns-blocklists), GPL-3.0.",
+      "fetched_at": "2026-11-07T11:11:37.185387736Z",
+      "bytes": 7610723,
+      "sha256": "304380e94aeb3b43066c81e93fc978d11cc493cff2b8132d818d9c9db12a664e",
+      "lines": 365131,
+      "rules": 365131,
+      "invalid": 0
+    },
+    {
+      "name": "hagezi-tif-mini",
+      "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/tif.mini.txt",
+      "homepage": "https://github.com/hagezi/dns-blocklists",
+      "license": "GPL-3.0",
+      "license_url": "https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
+      "attribution": "Threat Intelligence Feeds (mini) from HaGeZi DNS Blocklists (https://github.com/hagezi/dns-blocklists), GPL-3.0.",
+      "fetched_at": "2026-11-07T11:11:37.310433862Z",
+      "bytes": 3809332,
+      "sha256": "484cb6f76512f90adfe70e97d14696c2936358d56b3346616274d6d2e4575ced",
+      "lines": 189700,
+      "rules": 189700,
+      "invalid": 0
+    }
+  ],
+  "categories": [
+    {
+      "file": "abuse",
+      "code": "ABUSE",
+      "description": "HaGeZi Threat Intelligence Feeds, full size.",
+      "sources": [
+        "hagezi-tif"
+      ],
+      "rules": 1449092,
+      "domain_rules": 1449092,
+      "full_rules": 0,
+      "collapsed": 0,
+      "removed_public_suffix": [
+        "domain:5g.in",
+        "domain:6g.in",
+        "domain:at-band-camp.net",
+        "domain:camdvr.org",
+        "domain:ccwu.cc",
+        "domain:clan.rip",
+        "domain:cloud-ip.cc",
+        "domain:de5.net",
+        "domain:deta.app",
+        "domain:dfirma.pl",
+        "domain:dyndns-work.com",
+        "domain:dynuddns.net",
+        "domain:firewall-gateway.net",
+        "domain:firm.in",
+        "domain:for-some.biz",
+        "domain:for-the.biz",
+        "domain:from-ak.com",
+        "domain:from-al.com",
+        "domain:from-az.net",
+        "domain:from-co.net",
+        "domain:from-ga.com",
+        "domain:from-hi.com",
+        "domain:from-ia.com",
+        "domain:from-me.org",
+        "domain:from-mn.com",
+        "domain:from-mo.com",
+        "domain:from-nd.com",
+        "domain:from-nv.com",
+        "domain:from-ok.com",
+        "domain:from-or.com",
+        "domain:from-sd.com",
+        "domain:from-wv.com",
+        "domain:ggff.net",
+        "domain:groks-the.info",
+        "domain:iamallama.com",
+        "domain:is-a-chef.net",
+        "domain:is-a-conservative.com",
+        "domain:is-a-democrat.com",
+        "domain:is-a-designer.com",
+        "domain:is-a-financialadvisor.com",
+        "domain:is-a-knight.org",
+        "domain:is-a-socialist.com",
+        "domain:is-a-soxfan.org",
+        "domain:is-a-therapist.com",
+        "domain:is-an-anarchist.com",
+        "domain:is-found.org",
+        "domain:is-slick.com",
+        "domain:is-very-good.org",
+        "domain:ju.mp",
+        "domain:misconfused.org",
+        "domain:mysecuritycamera.org",
+        "domain:nflfan.org",
+        "domain:on-fleek.app",
+        "domain:plesk.page",
+        "domain:rs.ba",
+        "domain:saves-the-whales.com",
+        "domain:sells-it.net",
+        "domain:servebbs.org",
+        "domain:serveftp.com",
+        "domain:servesarcasm.com",
+        "domain:theworkpc.com",
+        "domain:uwu.ai"
+      ],
+      "removed_by_allowlist": [],
+      "previous_rules": 1558566
+    },
+    {
+      "file": "abuse-medium",
+      "code": "ABUSE",
+      "description": "HaGeZi Threat Intelligence Feeds, medium size.",
+      "sources": [
+        "hagezi-tif-medium"
+      ],
+      "rules": 365131,
+      "domain_rules": 365131,
+      "full_rules": 0,
+      "collapsed": 0,
+      "removed_public_suffix": [],
+      "removed_by_allowlist": [],
+      "previous_rules": 307643
+    },
+    {
+      "file": "abuse-mini",
+      "code": "ABUSE",
+      "description": "HaGeZi Threat Intelligence Feeds, mini size.",
+      "sources": [
+        "hagezi-tif-mini"
+      ],
+      "rules": 189700,
+      "domain_rules": 189700,
+      "full_rules": 0,
+      "collapsed": 0,
+      "removed_public_suffix": [],
+      "removed_by_allowlist": [],
+      "previous_rules": 194772
+    }
+  ],
+  "files": [
+    {
+      "name": "abuse-medium.dat",
+      "bytes": 8705442,
+      "sha256": "d081f365866d34098957de9a3ebe2648d62b783a172284517fc6522c0344106b"
+    },
+    {
+      "name": "abuse-medium.txt",
+      "bytes": 9436004,
+      "sha256": "c6ac276ab5c8bd3ecdfb22aa90e04d8c4fb97658506e3b31fc559e7b2fbac9a7"
+    },
+    {
+      "name": "abuse-mini.dat",
+      "bytes": 4377801,
+      "sha256": "b9eee650339f8643e01f5f9db39a1668f50ff6607be2c5f5e6345fa549f11f45"
+    },
+    {
+      "name": "abuse-mini.txt",
+      "bytes": 4757501,
+      "sha256": "8be9bc1a109395092d569f79a9f8cd6542fab52d215acd504865c5a4039aa920"
+    },
+    {
+      "name": "abuse.dat",
+      "bytes": 33716496,
+      "sha256": "921966b4eb1d3a5cc7254d895dc834c799343d1fffa10c2829bea47c48d9fbcd"
+    },
+    {
+      "name": "abuse.txt",
+      "bytes": 36614752,
+      "sha256": "bd2e21be9629595d068cb9f312cede16ca6334b7d2f9247aeb3e845001df3381"
+    }
+  ]
+}
